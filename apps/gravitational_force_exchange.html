@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravitational Sphere Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            min-height: 100vh;
+            color: var(--dark);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            background-color: white;
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            transition: transform 0.2s ease;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        select, input, button {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .results-display {
+            background-color: var(--gray-100);
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 60px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background-color: #000;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .section-accented {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .error {
+            color: var(--danger);
+            font-weight: 500;
+            padding: 10px 15px;
+            background-color: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+            margin-top: 10px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gravitational Sphere Simulator</h1>
+        
+        <div class="canvas-container">
+            <canvas id="simulationCanvas"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div class="form-group">
+                <label for="numPoints">Number of Points:</label>
+                <input type="number" id="numPoints" min="10" max="500" value="150" step="10">
+            </div>
+            
+            <div class="form-group">
+                <label for="numIterations">Number of Iterations:</label>
+                <input type="number" id="numIterations" min="10" max="200" value="100" step="10">
+            </div>
+            
+            <div class="form-group">
+                <label for="forceThreshold">Force Threshold:</label>
+                <input type="range" id="forceThreshold" min="0.05" max="0.5" value="0.2" step="0.05">
+                <p id="forceThresholdValue">0.2</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="scaleFactor">Scale Factor:</label>
+                <input type="range" id="scaleFactor" min="0.01" max="0.1" value="0.03" step="0.01">
+                <p id="scaleFactorValue">0.03</p>
+            </div>
+        </div>
+        
+        <div class="error" id="errorMessage"></div>
+        
+        <button id="startSimulation">Start Simulation</button>
+        
+        <div class="section-accented">
+            <h2>About This Simulator</h2>
+            <p>This application simulates gravitational interactions between points on a unit sphere. Each point exerts a force on all other points according to an inverse square law, similar to gravity.</p>
+            <p>The simulation then visualizes the trajectories of each point as it moves under these forces while remaining constrained to the surface of the sphere.</p>
+            <p>Adjust the parameters to control the number of points, iterations, force thresholds, and movement scale to create different patterns and visual effects.</p>
+            <p><strong>Interactive Controls:</strong> Click and drag your mouse on the sphere to rotate the visualization in 3D space. This allows you to examine the pattern from any angle.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            let animationId = null;
+            let isRunning = false;
+            
+            // Rotation variables
+            let rotationX = 0;
+            let rotationY = 0;
+            let isDragging = false;
+            let lastMouseX = 0;
+            let lastMouseY = 0;
+            
+            // Simulation variables
+            let trajectoryHistory = [];
+            let points = [];
+            let colors = [];
+            let numPoints = 0;
+            
+            // Set canvas size
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Mouse rotation handlers
+            canvas.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    const deltaX = e.clientX - lastMouseX;
+                    const deltaY = e.clientY - lastMouseY;
+                    
+                    rotationY += deltaX * 0.01;
+                    rotationX += deltaY * 0.01;
+                    
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    
+                    if (isRunning === false && animationId === null) {
+                        // If simulation is not running, we still need to render for rotation
+                        renderTrajectories();
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+            
+            canvas.addEventListener('touchstart', function(e) {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastMouseX = e.touches[0].clientX;
+                    lastMouseY = e.touches[0].clientY;
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('touchmove', function(e) {
+                if (isDragging && e.touches.length === 1) {
+                    const deltaX = e.touches[0].clientX - lastMouseX;
+                    const deltaY = e.touches[0].clientY - lastMouseY;
+                    
+                    rotationY += deltaX * 0.01;
+                    rotationX += deltaY * 0.01;
+                    
+                    lastMouseX = e.touches[0].clientX;
+                    lastMouseY = e.touches[0].clientY;
+                    
+                    if (isRunning === false && animationId === null) {
+                        renderTrajectories();
+                    }
+                    e.preventDefault();
+                }
+            });
+            
+            document.addEventListener('touchend', function() {
+                isDragging = false;
+            });
+
+            // Update range input displays
+            document.getElementById('forceThreshold').addEventListener('input', function() {
+                document.getElementById('forceThresholdValue').textContent = this.value;
+            });
+
+            document.getElementById('scaleFactor').addEventListener('input', function() {
+                document.getElementById('scaleFactorValue').textContent = this.value;
+            });
+
+            // Helper functions
+            function normalizeVector(v) {
+                const magnitude = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+                if (magnitude === 0) return v;
+                return [v[0] / magnitude, v[1] / magnitude, v[2] / magnitude];
+            }
+
+            function threshold(x, limit) {
+                return Math.max(Math.min(x, limit), -limit);
+            }
+
+            function calculateDistance(p1, p2) {
+                const dx = p1[0] - p2[0];
+                const dy = p1[1] - p2[1];
+                const dz = p1[2] - p2[2];
+                return Math.sqrt(dx * dx + dy * dy + dz * dz);
+            }
+
+            // Apply rotation to a 3D point
+            function rotatePoint(point) {
+                // Apply X rotation
+                let y = point[1];
+                let z = point[2];
+                let cosX = Math.cos(rotationX);
+                let sinX = Math.sin(rotationX);
+                let y1 = y * cosX - z * sinX;
+                let z1 = y * sinX + z * cosX;
+                
+                // Apply Y rotation
+                let x = point[0];
+                let cosY = Math.cos(rotationY);
+                let sinY = Math.sin(rotationY);
+                let x1 = x * cosY + z1 * sinY;
+                let z2 = -x * sinY + z1 * cosY;
+                
+                return [x1, y1, z2];
+            }
+            
+            // 3D to 2D projection
+            function project(point, width, height) {
+                // Apply rotation
+                const rotatedPoint = rotatePoint(point);
+                
+                const scale = Math.min(width, height) * 0.4;
+                const x = width / 2 + rotatedPoint[0] * scale;
+                const y = height / 2 + rotatedPoint[1] * scale;
+                // Use z for sizing and opacity (depth)
+                const size = 2 + 4 * (rotatedPoint[2] + 1) / 2; // Map z from [-1,1] to [2,6]
+                // Z-based opacity for better depth perception
+                const opacity = 0.5 + 0.5 * ((rotatedPoint[2] + 1) / 2); // Map z from [-1,1] to [0.5,1]
+                
+                return { x, y, size, opacity, z: rotatedPoint[2] };
+            }
+
+            // Generate random points on a unit sphere
+            function generatePoints(count) {
+                const points = [];
+                for (let i = 0; i < count; i++) {
+                    const theta = 2 * Math.PI * Math.random();
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    const x = Math.sin(phi) * Math.cos(theta);
+                    const y = Math.sin(phi) * Math.sin(theta);
+                    const z = Math.cos(phi);
+                    points.push([x, y, z]);
+                }
+                return points;
+            }
+
+            // Run the simulation
+            function runSimulation() {
+                // Clear any existing animation
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                
+                // Get parameters from inputs
+                numPoints = parseInt(document.getElementById('numPoints').value, 10);
+                const numIterations = parseInt(document.getElementById('numIterations').value, 10);
+                const forceThreshold = parseFloat(document.getElementById('forceThreshold').value);
+                const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
+                
+                // Validate inputs
+                if (numPoints < 10 || numPoints > 500 || 
+                    numIterations < 10 || numIterations > 200) {
+                    document.getElementById('errorMessage').textContent = 
+                        "Please ensure all values are within the allowed ranges.";
+                    document.getElementById('errorMessage').style.display = "block";
+                    return;
+                }
+                
+                document.getElementById('errorMessage').style.display = "none";
+                
+                // Reset rotation
+                rotationX = 0;
+                rotationY = 0;
+                
+                // Generate points
+                points = generatePoints(numPoints);
+                
+                // Store history for trajectories
+                trajectoryHistory = Array(numPoints).fill().map(() => []);
+                points.forEach((point, index) => {
+                    trajectoryHistory[index].push([...point]);
+                });
+                
+                // Generate colors for each point
+                colors = [];
+                for (let i = 0; i < numPoints; i++) {
+                    // Generate a wider color spectrum for better distinction
+                    const hue = (i * 360 / numPoints) % 360; // Full color spectrum
+                    const saturation = 80 + Math.random() * 20;
+                    const lightness = 50 + Math.random() * 30;
+                    colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+                }
+                
+                let currentIteration = 0;
+                isRunning = true;
+                
+                // Animation function
+                function animate() {
+                    if (!isRunning || currentIteration >= numIterations) {
+                        // Finished, just render the final state
+                        renderTrajectories();
+                        isRunning = false;
+                        document.getElementById('startSimulation').textContent = "Restart Simulation";
+                        
+                        // Start a continuous render loop for rotation interactions
+                        function rotationLoop() {
+                            if (isDragging) {
+                                renderTrajectories();
+                            }
+                            requestAnimationFrame(rotationLoop);
+                        }
+                        rotationLoop();
+                        
+                        return;
+                    }
+                    
+                    // Calculate forces and update positions
+                    const distances = [];
+                    for (let i = 0; i < numPoints; i++) {
+                        distances[i] = [];
+                        for (let j = 0; j < numPoints; j++) {
+                            if (i !== j) {
+                                distances[i][j] = calculateDistance(points[i], points[j]);
+                            }
+                        }
+                    }
+                    
+                    // Apply forces
+                    for (let i = 0; i < numPoints; i++) {
+                        const force = [0, 0, 0];
+                        
+                        for (let j = 0; j < numPoints; j++) {
+                            if (i !== j) {
+                                const dist = distances[i][j];
+                                if (dist > 0) {
+                                    // Direction vector from i to j
+                                    const direction = [
+                                        (points[j][0] - points[i][0]) / dist,
+                                        (points[j][1] - points[i][1]) / dist,
+                                        (points[j][2] - points[i][2]) / dist
+                                    ];
+                                    
+                                    // Force magnitude (inverse square law)
+                                    const magnitude = threshold(1 / (dist * dist), forceThreshold);
+                                    
+                                    // Accumulate force
+                                    force[0] += direction[0] * magnitude;
+                                    force[1] += direction[1] * magnitude;
+                                    force[2] += direction[2] * magnitude;
+                                }
+                            }
+                        }
+                        
+                        // Apply displacement
+                        points[i][0] += force[0] * scaleFactor;
+                        points[i][1] += force[1] * scaleFactor;
+                        points[i][2] += force[2] * scaleFactor;
+                        
+                        // Normalize to stay on unit sphere
+                        const normalized = normalizeVector(points[i]);
+                        points[i][0] = normalized[0];
+                        points[i][1] = normalized[1];
+                        points[i][2] = normalized[2];
+                        
+                        // Store position in history
+                        trajectoryHistory[i].push([...points[i]]);
+                    }
+                    
+                    currentIteration++;
+                    renderTrajectories();
+                    animationId = requestAnimationFrame(animate);
+                }
+                
+                // Function to render current state (called either during animation or when rotating)
+                function renderTrajectories() {
+                    if (!trajectoryHistory.length) return;
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    
+                    // Draw background sphere outline - create 3D sphere wireframe
+                    const steps = 16;
+                    const radius = 1;
+                    
+                    // Draw latitude circles
+                    for (let i = 0; i <= steps/2; i++) {
+                        const phi = Math.PI * i / (steps/2);
+                        const y = radius * Math.cos(phi);
+                        const r = radius * Math.sin(phi);
+                        
+                        ctx.beginPath();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        ctx.lineWidth = 1;
+                        
+                        for (let j = 0; j <= steps; j++) {
+                            const theta = 2 * Math.PI * j / steps;
+                            const x = r * Math.cos(theta);
+                            const z = r * Math.sin(theta);
+                            
+                            const point = project([x, y, z], canvas.width, canvas.height);
+                            
+                            if (j === 0) {
+                                ctx.moveTo(point.x, point.y);
+                            } else {
+                                ctx.lineTo(point.x, point.y);
+                            }
+                        }
+                        ctx.stroke();
+                    }
+                    
+                    // Draw longitude circles
+                    for (let i = 0; i < steps; i++) {
+                        const theta = 2 * Math.PI * i / steps;
+                        
+                        ctx.beginPath();
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                        ctx.lineWidth = 1;
+                        
+                        for (let j = 0; j <= steps; j++) {
+                            const phi = Math.PI * j / steps;
+                            const x = radius * Math.sin(phi) * Math.cos(theta);
+                            const y = radius * Math.cos(phi);
+                            const z = radius * Math.sin(phi) * Math.sin(theta);
+                            
+                            const point = project([x, y, z], canvas.width, canvas.height);
+                            
+                            if (j === 0) {
+                                ctx.moveTo(point.x, point.y);
+                            } else {
+                                ctx.lineTo(point.x, point.y);
+                            }
+                        }
+                        ctx.stroke();
+                    }
+                    
+                    // Store points with z-order for proper rendering
+                    const pointsToRender = [];
+                    
+                    // Prepare all points with z-index information
+                    for (let i = 0; i < numPoints; i++) {
+                        const trajectory = trajectoryHistory[i];
+                        if (trajectory.length === 0) continue;
+                        
+                        const linePoints = [];
+                        for (let j = 0; j < trajectory.length; j++) {
+                            linePoints.push(project(trajectory[j], canvas.width, canvas.height));
+                        }
+                        
+                        // Get average z value for the whole trajectory for sorting
+                        let avgZ = 0;
+                        for (let j = 0; j < linePoints.length; j++) {
+                            avgZ += linePoints[j].z;
+                        }
+                        avgZ /= linePoints.length;
+                        
+                        pointsToRender.push({
+                            type: 'line',
+                            points: linePoints,
+                            color: colors[i],
+                            z: avgZ
+                        });
+                        
+                        // Add the endpoint dot
+                        const current = linePoints[linePoints.length - 1];
+                        pointsToRender.push({
+                            type: 'dot',
+                            point: current,
+                            color: colors[i],
+                            z: current.z
+                        });
+                    }
+                    
+                    // Sort by z-index (painter's algorithm for basic depth)
+                    pointsToRender.sort((a, b) => a.z - b.z);
+                    
+                    // Draw all elements in z-order
+                    for (const item of pointsToRender) {
+                        if (item.type === 'line') {
+                            ctx.beginPath();
+                            
+                            // Adjust opacity based on z position for depth effect
+                            const opacity = 0.2 + 0.8 * ((item.z + 1) / 2); // Map from [-1,1] to [0.2,1]
+                            ctx.strokeStyle = item.color.replace(')', `, ${opacity})`).replace('rgb', 'rgba');
+                            ctx.lineWidth = 2;
+                            
+                            const points = item.points;
+                            if (points.length > 0) {
+                                ctx.moveTo(points[0].x, points[0].y);
+                                for (let j = 1; j < points.length; j++) {
+                                    ctx.lineTo(points[j].x, points[j].y);
+                                }
+                            }
+                            ctx.stroke();
+                        } else if (item.type === 'dot') {
+                            ctx.beginPath();
+                            // Adjust opacity based on z position for depth effect
+                            const opacity = item.point.opacity;
+                            ctx.fillStyle = item.color.replace(')', `, ${opacity})`).replace('rgb', 'rgba');
+                            ctx.arc(item.point.x, item.point.y, item.point.size, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                }
+                
+                // Start animation
+                animate();
+            }
+            
+            // Event listener for start button
+            document.getElementById('startSimulation').addEventListener('click', function() {
+                if (isRunning) {
+                    isRunning = false;
+                    this.textContent = "Start Simulation";
+                } else {
+                    this.textContent = "Stop Simulation";
+                    runSimulation();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
