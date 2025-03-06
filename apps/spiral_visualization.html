@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiral Visualization</title>
+    <!-- Import Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        canvas {
+            display: block;
+            margin: 30px auto;
+            border-radius: 12px;
+            background-color: var(--light);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-right: 15px;
+            margin-bottom: 25px;
+        }
+
+        .form-group:last-child {
+            margin-right: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+
+        input[type="range"] {
+            padding: 8px 0;
+            height: 40px;
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .section-accented {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .visualization-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .form-group {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spiral Visualization</h1>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="spiralCount">Number of Spirals:</label>
+                <input type="range" id="spiralCount" min="1" max="40" value="20" step="1">
+                <div id="spiralCountValue" style="text-align: center; margin-top: 5px;">20</div>
+            </div>
+            <div class="form-group">
+                <label for="lineWidth">Line Width:</label>
+                <input type="range" id="lineWidth" min="1" max="10" value="6" step="0.5">
+                <div id="lineWidthValue" style="text-align: center; margin-top: 5px;">6</div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="amplitude">Amplitude:</label>
+                <input type="range" id="amplitude" min="0.1" max="1" value="0.5" step="0.05">
+                <div id="amplitudeValue" style="text-align: center; margin-top: 5px;">0.5</div>
+            </div>
+            <div class="form-group">
+                <label for="cycles">Number of Cycles:</label>
+                <input type="range" id="cycles" min="1" max="8" value="4" step="0.5">
+                <div id="cyclesValue" style="text-align: center; margin-top: 5px;">4</div>
+            </div>
+        </div>
+        
+        <div class="visualization-container">
+            <canvas id="canvas" width="700" height="500"></canvas>
+        </div>
+        
+        <button id="randomize">Randomize Parameters</button>
+        
+        <div class="section-accented">
+            <h2>About This Visualization</h2>
+            <p>This app visualizes a parametric function of the form y = A·x·sin(x) with multiple rotated copies, creating a beautiful spiral pattern. The original equation is transformed and rotated to create a mesmerizing visual effect.</p>
+            <p>You can adjust the parameters using the sliders above to create your own unique patterns. The number of spirals controls how many rotated copies are created, while the amplitude and cycles parameters affect the shape of the base curve.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Get DOM elements
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const spiralCountInput = document.getElementById('spiralCount');
+        const spiralCountValue = document.getElementById('spiralCountValue');
+        const lineWidthInput = document.getElementById('lineWidth');
+        const lineWidthValue = document.getElementById('lineWidthValue');
+        const amplitudeInput = document.getElementById('amplitude');
+        const amplitudeValue = document.getElementById('amplitudeValue');
+        const cyclesInput = document.getElementById('cycles');
+        const cyclesValue = document.getElementById('cyclesValue');
+        const randomizeButton = document.getElementById('randomize');
+
+        // Update label values
+        spiralCountInput.addEventListener('input', () => {
+            spiralCountValue.textContent = spiralCountInput.value;
+            drawSpirals();
+        });
+
+        lineWidthInput.addEventListener('input', () => {
+            lineWidthValue.textContent = lineWidthInput.value;
+            drawSpirals();
+        });
+
+        amplitudeInput.addEventListener('input', () => {
+            amplitudeValue.textContent = amplitudeInput.value;
+            drawSpirals();
+        });
+
+        cyclesInput.addEventListener('input', () => {
+            cyclesValue.textContent = cyclesInput.value;
+            drawSpirals();
+        });
+
+        // Randomize button
+        randomizeButton.addEventListener('click', () => {
+            spiralCountInput.value = Math.floor(Math.random() * 40) + 1;
+            spiralCountValue.textContent = spiralCountInput.value;
+            
+            lineWidthInput.value = Math.floor(Math.random() * 10) + 1;
+            lineWidthValue.textContent = lineWidthInput.value;
+            
+            amplitudeInput.value = (Math.random() * 0.9 + 0.1).toFixed(2);
+            amplitudeValue.textContent = amplitudeInput.value;
+            
+            cyclesInput.value = (Math.random() * 7 + 1).toFixed(1);
+            cyclesValue.textContent = cyclesInput.value;
+            
+            drawSpirals();
+        });
+
+        // Generate HSV color palette similar to MATLAB's hsv function
+        function hsvPalette(n) {
+            const colors = [];
+            for (let i = 0; i < n; i++) {
+                const h = i / n;
+                const s = 1;
+                const v = 1;
+                
+                // Convert HSV to RGB
+                const c = v * s;
+                const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+                const m = v - c;
+                
+                let r, g, b;
+                if (h < 1/6) {
+                    [r, g, b] = [c, x, 0];
+                } else if (h < 2/6) {
+                    [r, g, b] = [x, c, 0];
+                } else if (h < 3/6) {
+                    [r, g, b] = [0, c, x];
+                } else if (h < 4/6) {
+                    [r, g, b] = [0, x, c];
+                } else if (h < 5/6) {
+                    [r, g, b] = [x, 0, c];
+                } else {
+                    [r, g, b] = [c, 0, x];
+                }
+                
+                const rgb = [
+                    Math.round((r + m) * 255),
+                    Math.round((g + m) * 255),
+                    Math.round((b + m) * 255)
+                ];
+                
+                colors.push(`rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`);
+            }
+            return colors;
+        }
+
+        // Function to generate points for the curve
+        function generateCurve(amplitude, cycles) {
+            const points = [];
+            const numPoints = 1000;
+            const pi = Math.PI;
+            const maxX = cycles * 2 * pi;
+            
+            for (let i = 0; i < numPoints; i++) {
+                const x = (i / (numPoints - 1)) * maxX;
+                const y = amplitude * x * Math.sin(x);
+                points.push({ x, y });
+            }
+            
+            return points;
+        }
+
+        // Function to rotate a point around the origin
+        function rotatePoint(point, angle) {
+            const x = point.x * Math.cos(angle) - point.y * Math.sin(angle);
+            const y = point.x * Math.sin(angle) + point.y * Math.cos(angle);
+            return { x, y };
+        }
+
+        // Function to draw the spirals
+        function drawSpirals() {
+            // Get current values
+            const spiralCount = parseInt(spiralCountInput.value);
+            const lineWidth = parseFloat(lineWidthInput.value);
+            const amplitude = parseFloat(amplitudeInput.value);
+            const cycles = parseFloat(cyclesInput.value);
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Generate base curve
+            const curve = generateCurve(amplitude, cycles);
+            
+            // Generate color palette
+            const colors = hsvPalette(spiralCount);
+            
+            // Scale factor to fit canvas
+            const maxDimension = Math.max(...curve.map(p => Math.max(Math.abs(p.x), Math.abs(p.y)))) * 2;
+            const scale = Math.min(canvas.width, canvas.height) / (2.2 * maxDimension);
+            
+            // Center of canvas
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Draw each rotated curve
+            for (let i = 0; i < spiralCount; i++) {
+                const angle = (i * 2 * Math.PI) / spiralCount;
+                const color = colors[i];
+                
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                
+                // Rotate and draw each point
+                for (let j = 0; j < curve.length; j++) {
+                    const rotated = rotatePoint(curve[j], angle);
+                    const screenX = centerX + rotated.x * scale;
+                    const screenY = centerY + rotated.y * scale;
+                    
+                    if (j === 0) {
+                        ctx.moveTo(screenX, screenY);
+                    } else {
+                        ctx.lineTo(screenX, screenY);
+                    }
+                }
+                
+                ctx.stroke();
+            }
+        }
+
+        // Initial draw
+        window.onload = drawSpirals;
+    </script>
+</body>
+</html>

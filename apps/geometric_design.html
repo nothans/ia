@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Sine Wave Pattern</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5849d8;
+      --secondary: #FF9F43;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --success: #00B894;
+      --danger: #FF6B6B;
+      --gray-100: #F8F9FA;
+      --gray-200: #E9ECEF;
+      --gray-300: #DEE2E6;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #a5b4fc, #818cf8);
+      color: var(--dark);
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: var(--light);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: var(--primary);
+      position: relative;
+      margin-bottom: 35px;
+    }
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      border-radius: 2px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+    }
+    .controls {
+      margin-top: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    input[type=range] {
+      width: 100%;
+      cursor: pointer;
+    }
+    label {
+      font-weight: 500;
+      color: var(--primary-dark);
+    }
+    button {
+      background: linear-gradient(to right, var(--primary), var(--primary-dark));
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 15px rgba(108,92,231,0.3);
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(108,92,231,0.4);
+    }
+    button:active {
+      transform: translateY(1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Interactive Sine Wave Pattern</h1>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <div class="controls">
+      <label for="lines">Number of Lines: <span id="lineCount">20</span></label>
+      <input type="range" id="lines" min="5" max="50" value="20">
+      <label for="amplitude">Amplitude: <span id="amplitudeVal">0.5</span></label>
+      <input type="range" id="amplitude" min="0.1" max="1.5" value="0.5" step="0.1">
+      <button id="reset">Reset Defaults</button>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const linesSlider = document.getElementById('lines');
+    const amplitudeSlider = document.getElementById('amplitude');
+    const lineCountDisplay = document.getElementById('lineCount');
+    const amplitudeDisplay = document.getElementById('amplitudeVal');
+    const resetButton = document.getElementById('reset');
+
+    function linspace(start, end, num) {
+      const arr = [];
+      const step = (end - start) / (num - 1);
+      for (let i = 0; i < num; i++) arr.push(start + step * i);
+      return arr;
+    }
+
+    function hsvToRgb(h, s, v) {
+      let c = v * s;
+      let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+      let m = v - c;
+      let r=0,g=0,b=0;
+      if(h<60){r=c;g=x;}
+      else if(h<120){r=x;g=c;}
+      else if(h<180){g=c;b=x;}
+      else if(h<240){g=x;b=c;}
+      else if(h<300){r=x;b=c;}
+      else{r=c;b=x;}
+      return `rgb(${(r+m)*255},${(g+m)*255},${(b+m)*255})`;
+    }
+
+    function drawPattern(k, amp) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.translate(canvas.width/2, canvas.height/2);
+      const x = linspace(0,4*Math.PI,200);
+      const y = x.map(v => amp*v*Math.sin(v));
+      const scale = 20;
+      for(let n=0;n<k;n++){
+        const theta = n*2*Math.PI/k;
+        ctx.save();
+        ctx.rotate(theta);
+        ctx.beginPath();
+        ctx.strokeStyle = hsvToRgb(n*360/k,1,0.9);
+        ctx.lineWidth = 3;
+        x.forEach((val,i)=>{
+          const xpos=val*scale,ypos=y[i]*scale;
+          if(i===0)ctx.moveTo(xpos,ypos);
+          else ctx.lineTo(xpos,ypos);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    function update(){
+      const k = parseInt(linesSlider.value);
+      const amp = parseFloat(amplitudeSlider.value);
+      lineCountDisplay.textContent = k;
+      amplitudeDisplay.textContent = amp.toFixed(1);
+      drawPattern(k, amp);
+    }
+
+    linesSlider.addEventListener('input', update);
+    amplitudeSlider.addEventListener('input', update);
+    resetButton.addEventListener('click', ()=>{
+      linesSlider.value=20;
+      amplitudeSlider.value=0.5;
+      update();
+    });
+
+    update();
+  </script>
+</body>
+</html>
