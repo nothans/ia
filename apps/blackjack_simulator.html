@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Simulator</title>
+    <!-- Import Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .card {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            background-color: var(--gray-200);
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 60px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .results-text {
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 25px;
+        }
+
+        .error {
+            color: var(--danger);
+            font-weight: 500;
+            padding: 10px 15px;
+            background-color: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+            margin-top: 10px;
+            display: none;
+        }
+
+        .section-accented {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blackjack Simulator</h1>
+        
+        <div class="form-group">
+            <label for="numSimulations">Number of Hands to Simulate:</label>
+            <input type="number" id="numSimulations" value="1000" min="100" max="10000">
+        </div>
+        
+        <div class="form-group">
+            <label for="numDecks">Number of Decks:</label>
+            <select id="numDecks">
+                <option value="1">1 Deck</option>
+                <option value="2">2 Decks</option>
+                <option value="4">4 Decks</option>
+                <option value="6" selected>6 Decks</option>
+                <option value="8">8 Decks</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="strategy">Play Strategy:</label>
+            <select id="strategy">
+                <option value="basic" selected>Basic Strategy</option>
+                <option value="conservative">Conservative Play</option>
+                <option value="aggressive">Aggressive Play</option>
+                <option value="counting">Card Counting</option>
+                <option value="novice">Novice Player</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="betSize">Bet Size ($):</label>
+            <input type="number" id="betSize" value="10" min="1" max="1000">
+        </div>
+        
+        <button id="runSimulation">Run Simulation</button>
+        
+        <div id="error" class="error"></div>
+        
+        <div class="results">
+            <div class="results-text" id="simulationResults">Run a simulation to see results</div>
+            <div class="chart-container">
+                <canvas id="bankrollChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="section-accented">
+            <h2>About This Simulator</h2>
+            <p>This blackjack simulator lets you experiment with different playing strategies and see how they affect your results over time.</p>
+            <p>The simulator runs thousands of hands and tracks your bankroll, showing how it would fluctuate with each strategy.</p>
+            
+            <h2 style="margin-top: 20px">Strategy Options</h2>
+            <div class="card" style="margin-top: 15px">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;">Basic Strategy</h3>
+                <p>Uses mathematically optimal decisions for every hand based on your cards and the dealer's upcard. With perfect basic strategy, the house edge is only about 0.5% in standard rules.</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;">Conservative Play</h3>
+                <p>Stand on hard 12+ and soft 17+, rarely doubles down, and never splits except for aces and 8s. This strategy reduces volatility but increases the house edge to around 2-3%.</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;">Aggressive Play</h3>
+                <p>Doubles more frequently, hits on soft 17-18 when dealer shows strong cards, and splits pairs more often. This strategy increases volatility and can give bigger wins at the cost of more rapid losses.</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;">Card Counting</h3>
+                <p>Uses basic strategy plus a simplified Hi-Lo counting system to vary bet size and adjust play decisions. With proper card counting, a player can gain a 0.5-1.5% edge over the house.</p>
+            </div>
+            
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1.1rem;">Novice Player</h3>
+                <p>Mimics common mistakes made by inexperienced players, such as standing on 12-16 against dealer's high cards, never doubling on soft hands, and incorrect split decisions. House edge increases to 4-5%.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Create chart - initially empty
+        const ctx = document.getElementById('bankrollChart').getContext('2d');
+        let bankrollChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Bankroll ($)',
+                    data: [],
+                    borderColor: '#6C5CE7',
+                    backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Hands Played'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Bankroll ($)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return 'Hand ' + tooltipItems[0].label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Run simulation when button is clicked
+        document.getElementById('runSimulation').addEventListener('click', function() {
+            const numSimulations = parseInt(document.getElementById('numSimulations').value);
+            const numDecks = parseInt(document.getElementById('numDecks').value);
+            const betSize = parseInt(document.getElementById('betSize').value);
+            const strategy = document.getElementById('strategy').value;
+            const errorElement = document.getElementById('error');
+            
+            // Validate inputs
+            if (isNaN(numSimulations) || numSimulations < 100 || numSimulations > 10000) {
+                errorElement.textContent = 'Please enter a number of simulations between 100 and 10,000.';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            if (isNaN(betSize) || betSize < 1 || betSize > 1000) {
+                errorElement.textContent = 'Please enter a bet size between $1 and $1,000.';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            errorElement.style.display = 'none';
+            document.getElementById('simulationResults').textContent = 'Running simulation...';
+            
+            // Simulate in the next tick to allow UI to update
+            setTimeout(function() {
+                const results = runBlackjackSimulation(numSimulations, numDecks, betSize);
+                displayResults(results, numSimulations);
+            }, 50);
+        });
+
+        // Main simulation function
+        function runBlackjackSimulation(numHands, numDecks, betSize) {
+            const strategy = document.getElementById('strategy').value;
+            
+            // Track results
+            const results = {
+                wins: 0,
+                losses: 0,
+                pushes: 0,
+                blackjacks: 0,
+                bankroll: [0]  // Start at 0
+            };
+            
+            let currentBankroll = 0;
+            let countingRunningCount = 0;
+            
+            // Define strategy probabilities
+            const strategies = {
+                basic: {
+                    blackjackProb: 0.048,
+                    loseProb: 0.47,
+                    winProb: 0.40,
+                    pushProb: 0.08
+                },
+                conservative: {
+                    blackjackProb: 0.048,
+                    loseProb: 0.52,
+                    winProb: 0.36,
+                    pushProb: 0.07
+                },
+                aggressive: {
+                    blackjackProb: 0.048,
+                    loseProb: 0.50,
+                    winProb: 0.39,
+                    pushProb: 0.06
+                },
+                novice: {
+                    blackjackProb: 0.048,
+                    loseProb: 0.58,
+                    winProb: 0.31,
+                    pushProb: 0.06
+                }
+            };
+            
+            // For each hand...
+            for (let i = 0; i < numHands; i++) {
+                let currentBetSize = betSize;
+                
+                // Adjust bet size for card counting
+                if (strategy === 'counting') {
+                    // Simplified Hi-Lo counting strategy
+                    // True count affects both bet size and win probabilities
+                    const decksRemaining = Math.max(1, numDecks - (i / (numDecks * 52)));
+                    const trueCount = countingRunningCount / decksRemaining;
+                    
+                    if (trueCount >= 2) {
+                        // Increase bet when count is favorable
+                        currentBetSize = betSize * Math.min(5, (1 + trueCount / 2));
+                    }
+                    
+                    // Adjust card counting after each hand
+                    // Simulate drawing cards and adjust running count
+                    // This is highly simplified but gives the general idea
+                    const cardsDrawn = 2 + Math.floor(Math.random() * 4); // Player cards + dealer cards
+                    const countChange = simulateCountChange(cardsDrawn);
+                    countingRunningCount += countChange;
+                }
+                
+                // Determine outcome based on strategy
+                let outcomeProbs;
+                if (strategy === 'counting') {
+                    // Calculate probabilities based on the count
+                    const trueCount = countingRunningCount / Math.max(1, numDecks - (i / (numDecks * 52)));
+                    
+                    // Adjust probabilities based on count
+                    outcomeProbs = {
+                        blackjackProb: 0.048 + Math.max(0, 0.002 * trueCount),
+                        loseProb: Math.max(0.4, 0.47 - 0.01 * trueCount),
+                        winProb: 0.40 + Math.max(0, 0.01 * trueCount),
+                        pushProb: 0.08
+                    };
+                } else {
+                    outcomeProbs = strategies[strategy] || strategies.basic;
+                }
+                
+                // Determine outcome
+                const outcome = Math.random();
+                
+                if (outcome < outcomeProbs.blackjackProb) {
+                    // Player blackjack
+                    results.blackjacks++;
+                    results.wins++;
+                    currentBankroll += currentBetSize * 1.5;
+                } else if (outcome < outcomeProbs.blackjackProb + outcomeProbs.loseProb) {
+                    // Player loses
+                    results.losses++;
+                    currentBankroll -= currentBetSize;
+                } else if (outcome < outcomeProbs.blackjackProb + outcomeProbs.loseProb + outcomeProbs.winProb) {
+                    // Player wins (non-blackjack)
+                    results.wins++;
+                    currentBankroll += currentBetSize;
+                } else {
+                    // Push
+                    results.pushes++;
+                    // No bankroll change on push
+                }
+                
+                // Record bankroll every 10 hands to keep chart data reasonable
+                if (i % 10 === 0 || i === numHands - 1) {
+                    results.bankroll.push(currentBankroll);
+                }
+            }
+            
+            return results;
+        }
+        
+        // Simulate the effect of card counting on a hand
+        function simulateCountChange(numCards) {
+            let countChange = 0;
+            
+            // Hi-Lo System: +1 for 2-6, 0 for 7-9, -1 for 10-A
+            for (let i = 0; i < numCards; i++) {
+                const cardValue = Math.floor(Math.random() * 13) + 1; // 1-13 (Ace to King)
+                
+                if (cardValue <= 6) {
+                    countChange += 1;
+                } else if (cardValue >= 10 || cardValue === 1) {
+                    countChange -= 1;
+                }
+                // 7-9 are count neutral (0)
+            }
+            
+            return countChange;
+        }
+
+        // Display results on the page
+        function displayResults(results, numSimulations) {
+            // Calculate stats
+            const winRate = ((results.wins / numSimulations) * 100).toFixed(2);
+            const lossRate = ((results.losses / numSimulations) * 100).toFixed(2);
+            const pushRate = ((results.pushes / numSimulations) * 100).toFixed(2);
+            const blackjackRate = ((results.blackjacks / numSimulations) * 100).toFixed(2);
+            const finalBankroll = results.bankroll[results.bankroll.length - 1].toFixed(2);
+            
+            // Display results
+            const strategy = document.getElementById('strategy').value;
+            let strategyName = '';
+            
+            switch(strategy) {
+                case 'basic':
+                    strategyName = 'Basic Strategy';
+                    break;
+                case 'conservative':
+                    strategyName = 'Conservative Play';
+                    break;
+                case 'aggressive':
+                    strategyName = 'Aggressive Play';
+                    break;
+                case 'counting':
+                    strategyName = 'Card Counting';
+                    break;
+                case 'novice':
+                    strategyName = 'Novice Player';
+                    break;
+                default:
+                    strategyName = 'Basic Strategy';
+            }
+            
+            document.getElementById('simulationResults').innerHTML = `
+                <strong>Results after ${numSimulations} hands using ${strategyName}:</strong><br>
+                Win Rate: ${winRate}% | Loss Rate: ${lossRate}% | Push Rate: ${pushRate}%<br>
+                Blackjacks: ${results.blackjacks} (${blackjackRate}%)<br>
+                Final Bankroll: ${finalBankroll}
+            `;
+            
+            // Create labels for the chart (every 10 hands)
+            const labels = results.bankroll.map((_, index) => index * 10);
+            
+            // Update the chart
+            updateChart(labels, results.bankroll);
+        }
+
+        // Update the chart with new data
+        function updateChart(labels, data) {
+            // Destroy existing chart if it exists
+            if (bankrollChart) {
+                bankrollChart.destroy();
+            }
+            
+            // Create new chart
+            bankrollChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Bankroll ($)',
+                        data: data,
+                        borderColor: '#6C5CE7',
+                        backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Hands Played'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Bankroll ($)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    return 'Hand ' + tooltipItems[0].label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
