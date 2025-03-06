@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Ladder Game of Life</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            background-attachment: fixed;
+            color: var(--dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .controls-section {
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 35px 0;
+        }
+
+        .button-group button {
+            margin: 0;
+        }
+
+        .game-container {
+            background: var(--gray-200);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-canvas {
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            margin: 0 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .patterns-section {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .pattern-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .pattern-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .explanation {
+            margin-top: 50px;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slider-value {
+            margin-left: auto;
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .stat-card {
+                margin: 5px 0;
+            }
+
+            .pattern-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game of Life</h1>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div>Generation</div>
+                <div id="generation-count" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div>Population</div>
+                <div id="population-count" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <div>Speed</div>
+                <div id="speed-display" class="stat-value">3 FPS</div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <canvas id="game-canvas" width="700" height="400"></canvas>
+        </div>
+
+        <div class="button-group">
+            <button id="start-btn">Start</button>
+            <button id="stop-btn">Stop</button>
+            <button id="clear-btn">Clear</button>
+            <button id="random-btn">Random</button>
+        </div>
+
+        <div class="controls-section">
+            <div class="form-group slider-container">
+                <label for="speed-slider">
+                    Speed
+                    <span id="speed-label" class="slider-value">3 fps</span>
+                </label>
+                <input type="range" id="speed-slider" min="1" max="20" value="3">
+            </div>
+            
+            <div class="form-group slider-container">
+                <label for="cell-size-slider">
+                    Cell Size
+                    <span id="cell-size-label" class="slider-value">10 px</span>
+                </label>
+                <input type="range" id="cell-size-slider" min="5" max="20" value="10">
+            </div>
+        </div>
+
+        <div class="patterns-section">
+            <h2>Common Patterns</h2>
+            <div class="pattern-grid">
+                <div class="pattern-item" data-pattern="glider">Glider</div>
+                <div class="pattern-item" data-pattern="blinker">Blinker</div>
+                <div class="pattern-item" data-pattern="toad">Toad</div>
+                <div class="pattern-item" data-pattern="beacon">Beacon</div>
+                <div class="pattern-item" data-pattern="pulsar">Pulsar</div>
+                <div class="pattern-item" data-pattern="gosper">Gosper Glider Gun</div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h2>About Conway's Game of Life</h2>
+            <p>The Game of Life is a cellular automaton devised by mathematician John Conway in 1970. It's a zero-player game, meaning its evolution is determined by its initial state, with no further input needed.</p>
+            <p>The rules are simple:</p>
+            <p>1. Any live cell with fewer than two live neighbors dies (underpopulation).</p>
+            <p>2. Any live cell with two or three live neighbors lives on to the next generation.</p>
+            <p>3. Any live cell with more than three live neighbors dies (overpopulation).</p>
+            <p>4. Any dead cell with exactly three live neighbors becomes a live cell (reproduction).</p>
+            <p>Click on the grid to toggle cells alive or dead, use the patterns to see famous configurations, or just watch and enjoy!</p>
+        </div>
+    </div>
+    
+    <script>
+        // Game logic
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Game state
+        let cellSize = 10;
+        let cols = Math.floor(canvas.width / cellSize);
+        let rows = Math.floor(canvas.height / cellSize);
+        let grid = createEmptyGrid();
+        let running = false;
+        let timer = null;
+        let generation = 0;
+        let speed = 3; // fps
+
+        // UI Elements
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const randomBtn = document.getElementById('random-btn');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedLabel = document.getElementById('speed-label');
+        const speedDisplay = document.getElementById('speed-display');
+        const cellSizeSlider = document.getElementById('cell-size-slider');
+        const cellSizeLabel = document.getElementById('cell-size-label');
+        const generationCount = document.getElementById('generation-count');
+        const populationCount = document.getElementById('population-count');
+        const patternItems = document.querySelectorAll('.pattern-item');
+
+        // Initialize the game
+        drawGrid();
+        updateStats();
+
+        // Event listeners
+        startBtn.addEventListener('click', startSimulation);
+        stopBtn.addEventListener('click', stopSimulation);
+        clearBtn.addEventListener('click', clearGrid);
+        randomBtn.addEventListener('click', randomizeGrid);
+        speedSlider.addEventListener('input', changeSpeed);
+        cellSizeSlider.addEventListener('input', changeCellSize);
+        canvas.addEventListener('click', toggleCell);
+
+        patternItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const pattern = item.dataset.pattern;
+                loadPattern(pattern);
+            });
+        });
+
+        // Function to create an empty grid
+        function createEmptyGrid() {
+            return Array(cols).fill().map(() => Array(rows).fill(0));
+        }
+
+        // Draw the grid on the canvas
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const x = i * cellSize;
+                    const y = j * cellSize;
+                    
+                    if (grid[i][j] === 1) {
+                        ctx.fillStyle = '#6C5CE7'; // Primary color
+                        ctx.fillRect(x, y, cellSize, cellSize);
+                        
+                        // Add cell border
+                        ctx.strokeStyle = 'white';
+                        ctx.strokeRect(x, y, cellSize, cellSize);
+                    } else {
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(x, y, cellSize, cellSize);
+                        
+                        // Add grid lines
+                        ctx.strokeStyle = '#E9ECEF'; // Gray-200 color
+                        ctx.strokeRect(x, y, cellSize, cellSize);
+                    }
+                }
+            }
+        }
+
+        // Calculate the next generation
+        function nextGeneration() {
+            const nextGrid = createEmptyGrid();
+            
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const state = grid[i][j];
+                    const neighbors = countNeighbors(i, j);
+                    
+                    // Apply Conway's Game of Life rules
+                    if (state === 0 && neighbors === 3) {
+                        nextGrid[i][j] = 1; // Reproduction
+                    } else if (state === 1 && (neighbors < 2 || neighbors > 3)) {
+                        nextGrid[i][j] = 0; // Under/overpopulation
+                    } else {
+                        nextGrid[i][j] = state; // Remain the same
+                    }
+                }
+            }
+            
+            grid = nextGrid;
+            generation++;
+            updateStats();
+        }
+
+        // Count the neighbors of a cell
+        function countNeighbors(x, y) {
+            let sum = 0;
+            for (let i = -1; i <= 1; i++) {
+                for (let j = -1; j <= 1; j++) {
+                    const col = (x + i + cols) % cols;
+                    const row = (y + j + rows) % rows;
+                    sum += grid[col][row];
+                }
+            }
+            sum -= grid[x][y]; // Don't count the cell itself
+            return sum;
+        }
+
+        // Toggle a cell when clicked
+        function toggleCell(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / cellSize);
+            const y = Math.floor((event.clientY - rect.top) / cellSize);
+            
+            if (x >= 0 && x < cols && y >= 0 && y < rows) {
+                grid[x][y] = grid[x][y] ? 0 : 1;
+                drawGrid();
+                updateStats();
+            }
+        }
+
+        // Start the simulation
+        function startSimulation() {
+            if (!running) {
+                running = true;
+                timer = setInterval(() => {
+                    nextGeneration();
+                    drawGrid();
+                }, 1000 / speed);
+            }
+        }
+
+        // Stop the simulation
+        function stopSimulation() {
+            running = false;
+            clearInterval(timer);
+        }
+
+        // Clear the grid
+        function clearGrid() {
+            stopSimulation();
+            grid = createEmptyGrid();
+            generation = 0;
+            drawGrid();
+            updateStats();
+        }
+
+        // Randomize the grid
+        function randomizeGrid() {
+            stopSimulation();
+            grid = Array(cols).fill().map(() => 
+                Array(rows).fill().map(() => Math.random() > 0.7 ? 1 : 0)
+            );
+            generation = 0;
+            drawGrid();
+            updateStats();
+        }
+
+        // Change simulation speed
+        function changeSpeed() {
+            speed = parseInt(speedSlider.value);
+            speedLabel.textContent = `${speed} fps`;
+            speedDisplay.textContent = `${speed} FPS`;
+            
+            if (running) {
+                stopSimulation();
+                startSimulation();
+            }
+        }
+
+        // Change cell size
+        function changeCellSize() {
+            stopSimulation();
+            cellSize = parseInt(cellSizeSlider.value);
+            cellSizeLabel.textContent = `${cellSize} px`;
+            
+            cols = Math.floor(canvas.width / cellSize);
+            rows = Math.floor(canvas.height / cellSize);
+            
+            const newGrid = Array(cols).fill().map(() => Array(rows).fill(0));
+            
+            // Copy the existing grid to the new grid where possible
+            for (let i = 0; i < Math.min(grid.length, cols); i++) {
+                for (let j = 0; j < Math.min(grid[0].length, rows); j++) {
+                    newGrid[i][j] = grid[i][j];
+                }
+            }
+            
+            grid = newGrid;
+            drawGrid();
+            updateStats();
+        }
+
+        // Update stats display
+        function updateStats() {
+            generationCount.textContent = generation;
+            
+            let population = 0;
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    population += grid[i][j];
+                }
+            }
+            populationCount.textContent = population;
+        }
+
+        // Load predefined patterns
+        function loadPattern(pattern) {
+            stopSimulation();
+            clearGrid();
+            
+            const centerX = Math.floor(cols / 2);
+            const centerY = Math.floor(rows / 2);
+            
+            switch (pattern) {
+                case 'glider':
+                    grid[centerX][centerY] = 1;
+                    grid[centerX + 1][centerY] = 1;
+                    grid[centerX + 1][centerY + 1] = 1;
+                    grid[centerX][centerY + 2] = 1;
+                    grid[centerX - 1][centerY + 1] = 1;
+                    break;
+                case 'blinker':
+                    grid[centerX - 1][centerY] = 1;
+                    grid[centerX][centerY] = 1;
+                    grid[centerX + 1][centerY] = 1;
+                    break;
+                case 'toad':
+                    grid[centerX - 1][centerY] = 1;
+                    grid[centerX][centerY] = 1;
+                    grid[centerX + 1][centerY] = 1;
+                    grid[centerX][centerY + 1] = 1;
+                    grid[centerX + 1][centerY + 1] = 1;
+                    grid[centerX + 2][centerY + 1] = 1;
+                    break;
+                case 'beacon':
+                    grid[centerX - 1][centerY - 1] = 1;
+                    grid[centerX][centerY - 1] = 1;
+                    grid[centerX - 1][centerY] = 1;
+                    grid[centerX][centerY] = 1;
+                    grid[centerX + 1][centerY + 1] = 1;
+                    grid[centerX + 2][centerY + 1] = 1;
+                    grid[centerX + 1][centerY + 2] = 1;
+                    grid[centerX + 2][centerY + 2] = 1;
+                    break;
+                case 'pulsar':
+                    const points = [
+                        [-2, -4], [-1, -4], [0, -4], [1, -4], [2, -4],
+                        [-2, 4], [-1, 4], [0, 4], [1, 4], [2, 4],
+                        [-4, -2], [-4, -1], [-4, 0], [-4, 1], [-4, 2],
+                        [4, -2], [4, -1], [4, 0], [4, 1], [4, 2],
+                        
+                        [-2, -6], [-1, -6], [0, -6], [1, -6], [2, -6],
+                        [-2, 6], [-1, 6], [0, 6], [1, 6], [2, 6],
+                        [-6, -2], [-6, -1], [-6, 0], [-6, 1], [-6, 2],
+                        [6, -2], [6, -1], [6, 0], [6, 1], [6, 2]
+                    ];
+                    
+                    for (const [x, y] of points) {
+                        if (centerX + x >= 0 && centerX + x < cols && 
+                            centerY + y >= 0 && centerY + y < rows) {
+                            grid[centerX + x][centerY + y] = 1;
+                        }
+                    }
+                    break;
+                case 'gosper':
+                    // Gosper Glider Gun pattern
+                    const gosperPattern = [
+                        [0, 4], [0, 5], [1, 4], [1, 5], // Block
+                        [10, 4], [10, 5], [10, 6], [11, 3], [11, 7], [12, 2], [12, 8],
+                        [13, 2], [13, 8], [14, 5], [15, 3], [15, 7], [16, 4], [16, 5], [16, 6],
+                        [17, 5], // Left side
+                        [20, 2], [20, 3], [20, 4], [21, 2], [21, 3], [21, 4], [22, 1], [22, 5],
+                        [24, 0], [24, 1], [24, 5], [24, 6], // Right side
+                        [34, 2], [34, 3], [35, 2], [35, 3] // Block far right
+                    ];
+                    
+                    for (const [x, y] of gosperPattern) {
+                        if (centerX - 15 + x >= 0 && centerX - 15 + x < cols && 
+                            centerY - 3 + y >= 0 && centerY - 3 + y < rows) {
+                            grid[centerX - 15 + x][centerY - 3 + y] = 1;
+                        }
+                    }
+                    break;
+            }
+            
+            drawGrid();
+            updateStats();
+        }
+    </script>
+</body>
+</html>
