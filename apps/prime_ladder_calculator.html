@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Ladder Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        #result {
+            margin-top: 40px;
+            padding: 25px;
+            border-radius: 12px;
+            background-color: var(--gray-100);
+            min-height: 60px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        #result h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .explanation {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+        
+        .explanation h2 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .ladder-step {
+            margin: 14px 0;
+            padding: 16px;
+            background-color: white;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+        
+        .ladder-step:hover {
+            transform: translateY(-2px);
+        }
+        
+        .ladder-step::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -25px;
+            width: 15px;
+            height: 2px;
+            background-color: var(--primary);
+            display: none;
+        }
+        
+        .ladder-step:not(:first-child)::before {
+            display: block;
+        }
+        
+        .digit-changed {
+            color: var(--secondary);
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .digit-changed::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--secondary);
+            border-radius: 3px;
+        }
+        
+        .error {
+            color: var(--danger);
+            font-weight: 500;
+            padding: 10px 15px;
+            background-color: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prime Ladder Calculator</h1>
+        
+        <div class="form-group">
+            <label for="primePair">Choose Prime Pair:</label>
+            <select id="primePair">
+                <option value="">Select a pair or enter your own</option>
+                <option value="3,103">3 to 103</option>
+                <option value="13,89">13 to 89</option>
+                <option value="17,71">17 to 71</option>
+                <option value="43,97">43 to 97</option>
+                <option value="113,991">113 to 991</option>
+                <option value="5,7919">5 to 7919</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="startPrime">Start Prime Number:</label>
+            <input type="number" id="startPrime" min="2" placeholder="Enter start prime number">
+        </div>
+        
+        <div class="form-group">
+            <label for="endPrime">End Prime Number:</label>
+            <input type="number" id="endPrime" min="2" placeholder="Enter end prime number">
+        </div>
+        
+        <button id="calculateBtn">Find Prime Ladder</button>
+        
+        <div id="result"></div>
+        
+        <div class="explanation">
+            <h2>What is a Prime Ladder?</h2>
+            <p>A prime ladder is a sequence of prime numbers where each consecutive prime differs by exactly one digit.</p>
+            <p>For example, a prime ladder from 3 to 103 could be:</p>
+            <ul>
+                <li>3</li>
+                <li>13</li>
+                <li>113</li>
+                <li>103</li>
+            </ul>
+            <p>Notice how only one digit changes at each step, and all numbers in the sequence are prime.</p>
+            <p>The calculator will find the shortest possible ladder between two prime numbers, if one exists.</p>
+        </div>
+    </div>
+
+    <script>
+        // Function to check if a number is prime
+        function isPrime(num) {
+            if (num < 2) return false;
+            if (num === 2) return true;
+            if (num % 2 === 0) return false;
+            
+            const sqrt = Math.sqrt(num);
+            for (let i = 3; i <= sqrt; i += 2) {
+                if (num % i === 0) return false;
+            }
+            return true;
+        }
+        
+        // Function to get all possible one-digit changes
+        function getOneDigitChanges(prime) {
+            const primeStr = prime.toString();
+            const result = [];
+            
+            for (let i = 0; i < primeStr.length; i++) {
+                for (let digit = 0; digit <= 9; digit++) {
+                    // Skip if it's the same digit
+                    if (parseInt(primeStr[i]) === digit) continue;
+                    
+                    // Create new number by changing one digit
+                    const newNumStr = primeStr.substring(0, i) + digit + primeStr.substring(i + 1);
+                    const newNum = parseInt(newNumStr);
+                    
+                    // Skip if it starts with 0 or if it's not prime
+                    if (newNumStr[0] === '0' || !isPrime(newNum)) continue;
+                    
+                    result.push(newNum);
+                }
+            }
+            
+            return result;
+        }
+        
+        // Function to find prime ladder using BFS
+        function findPrimeLadder(start, end) {
+            if (start === end) return [start];
+            
+            const queue = [[start]];
+            const visited = new Set([start]);
+            
+            while (queue.length > 0) {
+                const currentPath = queue.shift();
+                const currentPrime = currentPath[currentPath.length - 1];
+                
+                const neighbors = getOneDigitChanges(currentPrime);
+                
+                for (const neighbor of neighbors) {
+                    if (visited.has(neighbor)) continue;
+                    
+                    const newPath = [...currentPath, neighbor];
+                    
+                    if (neighbor === end) {
+                        return newPath;
+                    }
+                    
+                    visited.add(neighbor);
+                    queue.push(newPath);
+                }
+            }
+            
+            return null; // No path found
+        }
+        
+        // Function to highlight the changed digit
+        function highlightChangedDigit(prev, current) {
+            const prevStr = prev.toString().padStart(current.toString().length, '0');
+            const currentStr = current.toString();
+            let result = '';
+            
+            for (let i = 0; i < currentStr.length; i++) {
+                if (i >= prevStr.length || prevStr[i] !== currentStr[i]) {
+                    result += `<span class="digit-changed">${currentStr[i]}</span>`;
+                } else {
+                    result += currentStr[i];
+                }
+            }
+            
+            return result;
+        }
+        
+        // Function to display the ladder
+        function displayLadder(ladder) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<h2>Prime Ladder Found:</h2>';
+            
+            for (let i = 0; i < ladder.length; i++) {
+                const step = document.createElement('div');
+                step.className = 'ladder-step';
+                
+                if (i === 0) {
+                    step.innerHTML = ladder[i];
+                } else {
+                    step.innerHTML = highlightChangedDigit(ladder[i-1], ladder[i]);
+                }
+                
+                resultDiv.appendChild(step);
+            }
+            
+            resultDiv.innerHTML += `<p>Length of ladder: ${ladder.length - 1} steps</p>`;
+        }
+        
+        // Event listener for calculate button
+        document.getElementById('calculateBtn').addEventListener('click', function() {
+            const startPrime = parseInt(document.getElementById('startPrime').value);
+            const endPrime = parseInt(document.getElementById('endPrime').value);
+            const resultDiv = document.getElementById('result');
+            
+            // Validate inputs
+            if (isNaN(startPrime) || isNaN(endPrime)) {
+                resultDiv.innerHTML = '<p class="error">Please enter both start and end prime numbers.</p>';
+                return;
+            }
+            
+            if (!isPrime(startPrime) || !isPrime(endPrime)) {
+                resultDiv.innerHTML = '<p class="error">Both numbers must be prime.</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Calculating... (this may take a moment for larger primes)</p>';
+            
+            // Use setTimeout to allow the UI to update before the calculation starts
+            setTimeout(() => {
+                const ladder = findPrimeLadder(startPrime, endPrime);
+                
+                if (ladder) {
+                    displayLadder(ladder);
+                } else {
+                    resultDiv.innerHTML = '<p class="error">No prime ladder found between these numbers.</p>';
+                }
+            }, 100);
+        });
+        
+        // Event listener for prime pair dropdown
+        document.getElementById('primePair').addEventListener('change', function() {
+            const value = this.value;
+            if (value) {
+                const [start, end] = value.split(',').map(Number);
+                document.getElementById('startPrime').value = start;
+                document.getElementById('endPrime').value = end;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>McNugget Number Calculator</title>
+    <!-- Import Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C5CE7;
+            --primary-dark: #5849d8;
+            --secondary: #FF9F43;
+            --dark: #2D3436;
+            --light: #F5F6FA;
+            --success: #00B894;
+            --danger: #FF6B6B;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #a5b4fc, #818cf8);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        h2 {
+            color: var(--primary-dark);
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary-dark);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin: 35px auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .results {
+            background-color: var(--gray-200);
+            border-radius: 12px;
+            padding: 25px;
+            min-height: 60px;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.25rem;
+        }
+
+        .result-number {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-weight: 500;
+            padding: 10px 15px;
+            background-color: rgba(255, 107, 107, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .explanation {
+            margin-top: 50px;
+            padding: 30px;
+            background-color: rgba(108, 92, 231, 0.1);
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: var(--gray-200);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .steps {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .step {
+            margin: 14px 0;
+            padding: 16px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .step:hover {
+            transform: translateY(-2px);
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: var(--gray-300);
+            top: 100%;
+            left: 16px;
+            height: 14px;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>McNugget Number Calculator</h1>
+        
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div class="form-group">
+            <label for="boxSizes">Enter box sizes (comma separated):</label>
+            <input type="text" id="boxSizes" placeholder="Example: 6, 9, 20">
+        </div>
+        
+        <button id="calculateBtn">Calculate</button>
+        
+        <div class="results" id="results">
+            Enter box sizes and click Calculate to find the largest number of McNuggets that cannot be obtained.
+        </div>
+        
+        <div class="steps" id="steps">
+            <h2>Calculation Steps</h2>
+            <div id="stepsList"></div>
+        </div>
+        
+        <div class="explanation">
+            <h2>About This Calculator</h2>
+            <p>This calculator finds the largest number of McNuggets that cannot be obtained using given box sizes.</p>
+            <p>In mathematics, this is known as the <strong>Frobenius number</strong> or the <strong>Chicken McNugget Theorem</strong> when using specific box sizes.</p>
+            <p>For the classic McNugget boxes of 6, 9, and 20, the answer is 43. This means that all numbers greater than 43 can be made using combinations of 6, 9, and 20, but 43 itself cannot.</p>
+            <p>Try different box sizes to see how the result changes!</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const boxSizesInput = document.getElementById('boxSizes');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultsDiv = document.getElementById('results');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const stepsDiv = document.getElementById('steps');
+            const stepsListDiv = document.getElementById('stepsList');
+            
+            calculateBtn.addEventListener('click', function() {
+                // Clear previous results and errors
+                errorMessageDiv.style.display = 'none';
+                stepsDiv.style.display = 'none';
+                stepsListDiv.innerHTML = '';
+                
+                // Get input and validate
+                const input = boxSizesInput.value.trim();
+                
+                if (!input) {
+                    showError('Please enter at least two box sizes.');
+                    return;
+                }
+                
+                // Parse input to array
+                const boxSizes = input.split(',')
+                    .map(num => parseInt(num.trim()))
+                    .filter(num => !isNaN(num));
+                
+                // Validate array
+                if (boxSizes.length < 2) {
+                    showError('Please enter at least two valid box sizes.');
+                    return;
+                }
+                
+                if (boxSizes.some(size => size <= 0)) {
+                    showError('All box sizes must be positive integers.');
+                    return;
+                }
+                
+                // Calculate result
+                const result = calculateLargestUnobtainable(boxSizes);
+                
+                // Display result
+                resultsDiv.innerHTML = `The largest number of McNuggets that cannot be obtained using boxes of ${boxSizes.join(', ')} is <span class="result-number">${result}</span>`;
+                
+                // Show steps
+                stepsDiv.style.display = 'block';
+            });
+            
+            function showError(message) {
+                errorMessageDiv.textContent = message;
+                errorMessageDiv.style.display = 'block';
+                resultsDiv.innerHTML = 'Enter box sizes and click Calculate to find the largest number of McNuggets that cannot be obtained.';
+            }
+            
+            function calculateLargestUnobtainable(boxSizes) {
+                // Sort the input array
+                boxSizes.sort((a, b) => a - b);
+                addStep(`Sorted box sizes: [${boxSizes.join(', ')}]`);
+                
+                // Check if gcd of all numbers is 1
+                const gcd = findGCD(boxSizes);
+                addStep(`Greatest common divisor (GCD) of all box sizes: ${gcd}`);
+                
+                if (gcd > 1) {
+                    addStep(`When GCD > 1, no finite solution exists because some numbers will always be impossible to make.`);
+                    return "No finite solution (GCD > 1)";
+                }
+                
+                // Determine a reasonable upper bound
+                // A proven upper bound is (boxSizes[0] - 1) * boxSizes[1]
+                const upperBound = (boxSizes[0] - 1) * boxSizes[1];
+                addStep(`Setting upper bound for calculation: (${boxSizes[0]} - 1) × ${boxSizes[1]} = ${upperBound}`);
+                
+                // Initialize array to track achievable numbers
+                const achievable = new Array(upperBound + 1).fill(false);
+                achievable[0] = true; // 0 is always achievable (by using no boxes)
+                addStep(`Starting with 0 nuggets (achievable by using no boxes)`);
+                
+                // Dynamic programming to mark all achievable numbers
+                addStep(`Using dynamic programming to find all achievable numbers:`);
+                for (let i = 0; i <= upperBound; i++) {
+                    if (achievable[i]) {
+                        for (const boxSize of boxSizes) {
+                            if (i + boxSize <= upperBound) {
+                                achievable[i + boxSize] = true;
+                            }
+                        }
+                    }
+                }
+                
+                // Find the largest non-achievable number
+                let largestNonAchievable = 0;
+                for (let i = 0; i <= upperBound; i++) {
+                    if (!achievable[i]) {
+                        largestNonAchievable = i;
+                    }
+                }
+                
+                // Display which numbers are unachievable
+                const unachievable = [];
+                for (let i = 1; i <= upperBound; i++) {
+                    if (!achievable[i]) {
+                        unachievable.push(i);
+                    }
+                }
+                
+                if (unachievable.length > 0) {
+                    if (unachievable.length <= 10) {
+                        addStep(`Unachievable numbers: ${unachievable.join(', ')}`);
+                    } else {
+                        addStep(`First 10 unachievable numbers: ${unachievable.slice(0, 10).join(', ')}...`);
+                    }
+                    addStep(`Largest unachievable number: ${largestNonAchievable}`);
+                } else {
+                    addStep(`All numbers are achievable up to the upper bound.`);
+                }
+                
+                return largestNonAchievable;
+            }
+            
+            function findGCD(numbers) {
+                if (numbers.length === 0) return 0;
+                let result = numbers[0];
+                
+                for (let i = 1; i < numbers.length; i++) {
+                    result = gcd(result, numbers[i]);
+                }
+                
+                return result;
+            }
+            
+            function gcd(a, b) {
+                while (b) {
+                    const temp = b;
+                    b = a % b;
+                    a = temp;
+                }
+                return a;
+            }
+            
+            function addStep(description) {
+                const step = document.createElement('div');
+                step.className = 'step';
+                step.textContent = description;
+                stepsListDiv.appendChild(step);
+            }
+            
+            // Set default input for better user experience
+            boxSizesInput.value = "6, 9, 20";
+        });
+    </script>
+</body>
+</html>
